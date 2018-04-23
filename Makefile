@@ -21,7 +21,8 @@ BL1_BIN			?= $(ARM_TF_PATH)/build/hikey/debug/bl1.bin
 FIP_BIN			?= $(ARM_TF_PATH)/build/hikey/debug/fip.bin
 LLOADER_BIN		?= $(LLOADER_PATH)/l-loader.bin
 # https://github.com/96boards/edk2/raw/hikey/HisiPkg/HiKeyPkg/NonFree/mcuimage.bin
-MCU_BIN			?= $(EDK2_PATH)/HisiPkg/HiKeyPkg/NonFree/mcuimage.bin
+MCU_HTTPS		?= https://github.com/96boards-hikey/OpenPlatformPkg/raw/hikey970_v1.0/Platforms/Hisilicon/HiKey/Binary/mcuimage.bin
+MCU_BIN			?= $(OUT_PATH)/mcuimage.bin
 NVME_BIN		?= $(OUT_PATH)/nvme.img
 # Change this according to the size of flash on your device
 PTABLE_BIN		?= $(LLOADER_PATH)/ptable-linux-8g.img
@@ -31,10 +32,10 @@ UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
 # Targets
 ################################################################################
 .PHONY: all
-all: u-boot arm-tf l-loader nvme | toolchains
+all: u-boot arm-tf l-loader nvme mcuimage | toolchains
 
 .PHONY: clean
-clean: u-boot-clean arm-tf-clean l-loader-clean nvme-clean
+clean: u-boot-clean arm-tf-clean l-loader-clean nvme-clean mcuimage-clean
 
 ################################################################################
 # Toolchain
@@ -59,6 +60,19 @@ endif
 .PHONY: nvme-clean
 nvme-clean:
 	rm -f $(NVME_BIN)
+
+################################################################################
+# MCUIMAGE
+################################################################################
+.PHONY: mcuimage
+mcuimage: $(OUT_PATH)
+ifeq ($(wildcard $(MCU_BIN)),)
+	@wget -P $(OUT_PATH) $(MCU_HTTPS)
+endif
+
+.PHONY: mcuimage-clean
+mcuimage-clean:
+	rm -f $(MCU_BIN)
 
 ################################################################################
 # U-Boot

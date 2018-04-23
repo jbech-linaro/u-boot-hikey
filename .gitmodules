@@ -10,6 +10,3 @@
 [submodule "burn-boot"]
 	path = burn-boot
 	url = https://github.com/96boards/burn-boot.git
-[submodule "edk2"]
-	path = edk2
-	url = https://github.com/96boards/edk2.git
