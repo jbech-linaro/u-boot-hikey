@@ -1,0 +1,15 @@
+[submodule "u-boot"]
+	path = u-boot
+	url = git://git.denx.de/u-boot.git
+[submodule "l-loader"]
+	path = l-loader
+	url = https://github.com/96boards/l-loader.git
+[submodule "arm-trusted-firmware"]
+	path = arm-trusted-firmware
+	url = https://github.com/96boards/arm-trusted-firmware.git
+[submodule "burn-boot"]
+	path = burn-boot
+	url = https://github.com/96boards/burn-boot.git
+[submodule "edk2"]
+	path = edk2
+	url = https://github.com/96boards/edk2.git
