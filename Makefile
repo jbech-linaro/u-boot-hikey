@@ -8,6 +8,7 @@ BASH ?= bash
 ROOT			?= $(shell pwd)
 OUT_PATH		?= $(ROOT)/out
 
+ATF_FB_PATH		?= $(ROOT)/atf-fastboot
 ARM_TF_PATH		?= $(ROOT)/arm-trusted-firmware
 BURN_BOOT_PATH		?= $(ROOT)/burn-boot
 EDK2_PATH		?= $(ROOT)/edk2
@@ -15,7 +16,11 @@ LLOADER_PATH		?= $(ROOT)/l-loader
 UBOOT_PATH		?= $(ROOT)/u-boot
 
 NVME_HTTPS		?= https://releases.linaro.org/96boards/archive/reference-platform/debian/hikey/16.06/bootloader/nvme.img
+
+ATF_FB_BL1_BIN		?= $(ATF_FB_PATH)/build/hikey/debug/bl1.bin
 BL1_BIN			?= $(ARM_TF_PATH)/build/hikey/debug/bl1.bin
+BL2_BIN			?= $(ARM_TF_PATH)/build/hikey/debug/bl2.bin
+FASTBOOT_BIN		?= $(LLOADER_PATH)/fastboot.bin
 FIP_BIN			?= $(ARM_TF_PATH)/build/hikey/debug/fip.bin
 LLOADER_BIN		?= $(LLOADER_PATH)/l-loader.bin
 # https://github.com/96boards/edk2/raw/hikey/HisiPkg/HiKeyPkg/NonFree/mcuimage.bin
@@ -23,16 +28,17 @@ MCU_BIN			?= $(EDK2_PATH)/HisiPkg/HiKeyPkg/NonFree/mcuimage.bin
 NVME_BIN		?= $(OUT_PATH)/nvme.img
 # Change this according to the size of flash on your device
 PTABLE_BIN		?= $(LLOADER_PATH)/ptable-linux-8g.img
+RECOVERY_BIN		?= $(LLOADER_PATH)/recovery.bin
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
 
 ################################################################################
 # Targets
 ################################################################################
 .PHONY: all
-all: u-boot arm-tf l-loader nvme | toolchains
+all: u-boot arm-tf l-loader nvme atf-fb | toolchains
 
 .PHONY: clean
-clean: u-boot-clean arm-tf-clean l-loader-clean nvme-clean
+clean: u-boot-clean arm-tf-clean l-loader-clean nvme-clean atf-fb-clean
 
 ################################################################################
 # Toolchain
@@ -84,12 +90,28 @@ arm-tf: u-boot
 .PHONY: arm-tf-clean
 arm-tf-clean:
 	cd $(ARM_TF_PATH) && git clean -xdf
+################################################################################
+# atf-fastboot
+################################################################################
+.PHONY: atf-fb
+atf-fb:
+	CROSS_COMPILE=$(AARCH64_CROSS_COMPILE) $(MAKE) -C $(ATF_FB_PATH) \
+		      DEBUG=$(DEBUG) \
+		      PLAT=hikey
+
+.PHONY: atf-fb-clean
+atf-fb-clean:
+	cd $(ATF_FB_PATH) && git clean -xdf
 
 ################################################################################
 # l-loader
 ################################################################################
-l-loader: arm-tf
-	$(MAKE) -C $(LLOADER_PATH) BL1=$(BL1_BIN) PTABLE_LST=linux-8g all
+l-loader: arm-tf atf-fb
+	cd $(LLOADER_PATH) && \
+		ln -sf $(BL1_BIN) && \
+		ln -sf $(BL2_BIN) && \
+		ln -sf $(ATF_FB_BL1_BIN) $(FASTBOOT_BIN) && \
+	$(MAKE) -C $(LLOADER_PATH) PTABLE_LST=linux-8g hikey
 
 .PHONY: l-loader-clean
 l-loader-clean:
@@ -101,7 +123,8 @@ l-loader-clean:
 .PHONY: flash
 flash:
 	@read -r -p "Put HiKey in recovery and turn on power (press enter to continue)" dummy
-	$(BURN_BOOT_PATH)/hisi-idt.py --img1=$(LLOADER_BIN)
+	$(BURN_BOOT_PATH)/hisi-idt.py --img1=$(RECOVERY_BIN)
+	fastboot flash loader $(LLOADER_PATH)/l-loader.bin
 	@echo "Flashing: $(PTABLE_BIN)"
 	fastboot flash ptable $(PTABLE_BIN)
 	@echo "Flashing: $(FIP_BIN)"

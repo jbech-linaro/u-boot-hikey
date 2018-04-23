@@ -13,3 +13,6 @@
 [submodule "edk2"]
 	path = edk2
 	url = https://github.com/96boards/edk2.git
+[submodule "atf-fastboot"]
+	path = atf-fastboot
+	url = https://github.com/96boards-hikey/atf-fastboot.git
