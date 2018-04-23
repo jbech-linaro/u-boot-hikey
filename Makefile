@@ -61,9 +61,18 @@ nvme-clean:
 ################################################################################
 # U-Boot
 ################################################################################
+.PHONY: u-boot-config
+u-boot-config:
+ifeq ($(wildcard $(UBOOT_PATH)/.config),)
+	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE=$(AARCH64_CROSS_COMPILE) hikey_config
+endif
+
+.PHONY: u-boot-menuconfig
+u-boot-menuconfig: u-boot-config
+	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE=$(AARCH64_CROSS_COMPILE) menuconfig
+
 .PHONY: u-boot
-u-boot:
-	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE=$(AARCH64_CROSS_COMPILE) hikey_config && \
+u-boot: u-boot-config
 	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE=$(AARCH64_CROSS_COMPILE)
 
 .PHONY: u-boot-clean
