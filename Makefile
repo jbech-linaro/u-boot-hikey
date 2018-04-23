@@ -108,3 +108,9 @@ flash:
 	fastboot flash fastboot $(FIP_BIN)
 	@echo "Flashing: $(NVME_BIN)"
 	fastboot flash nvme $(NVME_BIN)
+
+.PHONY: flash-fip
+flash-fip:
+	@read -r -p "Put HiKey in recovery and turn on power (press enter to continue)" dummy
+	$(BURN_BOOT_PATH)/hisi-idt.py --img1=$(LLOADER_BIN)
+	fastboot flash fastboot $(FIP_BIN)
