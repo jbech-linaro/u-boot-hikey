@@ -2,6 +2,8 @@ DEBUG ?= 1
 SHELL := bash
 BASH ?= bash
 
+CCACHE ?= $(shell which ccache) # Don't remove this comment (space is needed)
+
 ################################################################################
 # Paths to git projects and various binaries
 ################################################################################
@@ -73,7 +75,7 @@ u-boot-menuconfig: u-boot-config
 
 .PHONY: u-boot
 u-boot: u-boot-config
-	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE=$(AARCH64_CROSS_COMPILE)
+	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
 
 .PHONY: u-boot-clean
 u-boot-clean:
@@ -84,7 +86,7 @@ u-boot-clean:
 ################################################################################
 .PHONY: arm-tf
 arm-tf: u-boot
-	$(MAKE) -C $(ARM_TF_PATH) CROSS_COMPILE=$(AARCH64_CROSS_COMPILE) all fip \
+	$(MAKE) -C $(ARM_TF_PATH) CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" all fip \
 		BL30=$(MCU_BIN) \
 		BL33=$(UBOOT_BIN) \
 		DEBUG=1 \
