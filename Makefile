@@ -114,7 +114,7 @@ arm-tf-clean:
 # l-loader
 ################################################################################
 l-loader: arm-tf
-	$(MAKE) -C $(LLOADER_PATH) BL1=$(BL1_BIN) PTABLE_LST=linux-8g all
+	$(MAKE) -C $(LLOADER_PATH) CROSS_COMPILE=$(AARCH32_CROSS_COMPILE) BL1=$(BL1_BIN) PTABLE_LST=linux-8g all
 
 .PHONY: l-loader-clean
 l-loader-clean:

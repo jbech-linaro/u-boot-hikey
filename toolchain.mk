@@ -28,7 +28,7 @@ define dltc
 endef
 
 .PHONY: toolchains
-toolchains: aarch64
+toolchains: aarch64 aarch32
 
 .PHONY: aarch32
 aarch32:
