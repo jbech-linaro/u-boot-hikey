@@ -15,6 +15,7 @@ BURN_BOOT_PATH		?= $(ROOT)/burn-boot
 EDK2_PATH		?= $(ROOT)/edk2
 LLOADER_PATH		?= $(ROOT)/l-loader
 UBOOT_PATH		?= $(ROOT)/u-boot
+OPTEE_PATH		?= $(ROOT)/optee_os
 
 NVME_HTTPS		?= https://releases.linaro.org/96boards/archive/reference-platform/debian/hikey/16.06/bootloader/nvme.img
 BL1_BIN			?= $(ARM_TF_PATH)/build/hikey/debug/bl1.bin
@@ -27,6 +28,11 @@ NVME_BIN		?= $(OUT_PATH)/nvme.img
 # Change this according to the size of flash on your device
 PTABLE_BIN		?= $(LLOADER_PATH)/ptable-linux-8g.img
 UBOOT_BIN		?= $(UBOOT_PATH)/u-boot.bin
+
+OPTEE_BIN		?= $(OPTEE_PATH)/out/arm-plat-hikey/core/tee.bin
+OPTEE_BIN_EXTRA1	?= $(OPTEE_PATH)/out/arm-plat-hikey/core/tee-pager.bin
+OPTEE_BIN_EXTRA2	?= $(OPTEE_PATH)/out/arm-plat-hikey/core/tee-pageable.bin
+
 
 ################################################################################
 # Targets
@@ -93,20 +99,26 @@ u-boot: u-boot-config
 
 .PHONY: u-boot-clean
 u-boot-clean:
-	cd $(UBOOT_PATH) && git clean -xdf
+	$(MAKE) -C $(UBOOT_PATH) distclean
 
 ################################################################################
 # ARM Trusted Firmware
 ################################################################################
 .PHONY: arm-tf
-arm-tf: u-boot
+arm-tf: u-boot optee-os
 	$(MAKE) -C $(ARM_TF_PATH) CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" all fip \
 		BL30=$(MCU_BIN) \
 		BL33=$(UBOOT_BIN) \
 		DEBUG=1 \
-		PLAT=hikey
+		BL32=$(OPTEE_BIN) \
+		PLAT=hikey SPD=opteed
 
-.PHONY: arm-tf-clean
+	ORIG_SIZE=$$(stat --printf="%s" $(FIP_BIN)); \
+	echo $$ORIG_SIZE; \
+	SIZE_ADD=$$(( (($$ORIG_SIZE + 511) / 512) * 512 - $$ORIG_SIZE )); \
+	truncate -s +$$SIZE_ADD $(FIP_BIN)
+
+.PHONY: arm-tf-clean optee-os-clean
 arm-tf-clean:
 	cd $(ARM_TF_PATH) && git clean -xdf
 
@@ -119,6 +131,23 @@ l-loader: arm-tf
 .PHONY: l-loader-clean
 l-loader-clean:
 	cd $(LLOADER_PATH) && git clean -xdf
+
+################################################################################
+# OP-TEE OS
+################################################################################
+.PHONY: optee-os
+optee-os:
+	$(MAKE) -C $(OPTEE_PATH) PLATFORM=hikey CFG_ARM64_core=y \
+		CROSS_COMPILE="$(AARCH32_CROSS_COMPILE)" \
+		CROSS_COMPILE_core="$(AARCH64_CROSS_COMPILE)" \
+		CROSS_COMPILE_ta_arm64="$(AARCH64_CROSS_COMPILE)" \
+		CROSS_COMPILE_ta_arm32="$(AARCH32_CROSS_COMPILE)" \
+		CFG_TEE_CORE_LOG_LEVEL=4
+
+.PHONY: optee-os-clean
+optee-os-clean:
+	$(MAKE) -C $(OPTEE_PATH) clean
+
 
 ################################################################################
 # flash
