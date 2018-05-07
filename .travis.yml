@@ -1,0 +1,17 @@
+language: c
+
+notifications:
+  - email: true
+
+# Install the cross-compiler
+before_install:
+  - sudo apt-get update -qq
+  # Travis does 'export CC=gcc'. Unset CC so that ./flags.mk properly
+  # defines the cross-compiler to the default value: $(CROSS_COMPILE)gcc.
+  - unset CC
+
+script:
+  - git submodule init
+  - git submodule update
+  - sudo make toolchains
+  - sudo make -j8
