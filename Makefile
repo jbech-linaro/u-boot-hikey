@@ -89,7 +89,7 @@ u-boot-menuconfig: u-boot-config
 
 .PHONY: u-boot
 u-boot: u-boot-config
-	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)"
+	$(MAKE) -C $(UBOOT_PATH) CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" DTC=$(ROOT)/dtc
 
 .PHONY: u-boot-clean
 u-boot-clean:
