@@ -105,11 +105,12 @@ u-boot-clean:
 # ARM Trusted Firmware
 ################################################################################
 .PHONY: arm-tf
-arm-tf: u-boot optee-os
+arm-tf: u-boot optee-os mcuimage
 	$(MAKE) -C $(ARM_TF_PATH) CROSS_COMPILE="$(CCACHE)$(AARCH64_CROSS_COMPILE)" all fip \
 		BL30=$(MCU_BIN) \
 		BL33=$(UBOOT_BIN) \
 		DEBUG=1 \
+		DISABLE_PEDANTIC=1 \
 		BL32=$(OPTEE_BIN) \
 		PLAT=hikey SPD=opteed
 
