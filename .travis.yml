@@ -6,7 +6,8 @@ notifications:
 # Install the cross-compiler
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install python-crypto python-wand
+  - sudo apt-get install python3-pip python3
+  - python3 -m pip install --user pycryptodome
   # Travis does 'export CC=gcc'. Unset CC so that ./flags.mk properly
   # defines the cross-compiler to the default value: $(CROSS_COMPILE)gcc.
   - unset CC
